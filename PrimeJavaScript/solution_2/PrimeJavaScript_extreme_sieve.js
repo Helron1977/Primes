@@ -10,17 +10,25 @@ const LIMIT_BITS = SIEVE_SIZE >>> 1;
 // 15,015 words (15,015 * 32 bits) is a perfect word-aligned wheel.
 // 15,015 * 32 = 480,480 bits.
 const SW_WORDS = 15015;
-const GLOBAL_SW = new Int32Array(SW_WORDS);
+const SW_13 = new Int32Array(SW_WORDS);
+const SW_17 = new Int32Array(SW_WORDS);
 
-(function buildSuperWheel() {
-    const pList = [3, 5, 7, 11, 13];
-    for (const p of pList) {
+(function buildSuperWheels() {
+    const pList13 = [3, 5, 7, 11, 13];
+    for (const p of pList13) {
         let step = p;
         let start = p >>> 1;
         while (start < SW_WORDS * 32) {
-            GLOBAL_SW[start >>> 5 | 0] |= (1 << (start & 31));
+            SW_13[start >>> 5 | 0] |= (1 << (start & 31));
             start += step;
         }
+    }
+    SW_17.set(SW_13);
+    const p17 = 17;
+    let s = p17 >>> 1;
+    while (s < SW_WORDS * 32) {
+        SW_17[s >>> 5 | 0] |= (1 << (s & 31));
+        s += p17;
     }
 })();
 
@@ -47,17 +55,24 @@ class PrimeSieve {
         const limit = this.limitBits;
         const q = this.q;
 
-        // 1. FAST INIT (Wheel 3-13)
-        arr.set(GLOBAL_SW.subarray(0, Math.min(SW_WORDS, len)));
+        // 1. FAST INIT (Wheel 3-17)
+        arr.set(SW_17.subarray(0, Math.min(SW_WORDS, len)));
         if (len > SW_WORDS) {
-            arr.set(GLOBAL_SW.subarray(0, len - SW_WORDS), SW_WORDS);
+            arr.set(SW_13.subarray(0, len - SW_WORDS), SW_WORDS);
+            
+            // Fix prime 17 for the tail (starting index 480480)
+            let fixS = 480496;
+            while (fixS < limit) {
+                arr[fixS >>> 5 | 0] |= (1 << (fixS & 31));
+                fixS += 17;
+            }
         }
 
-        // Restore 3, 5, 7, 11, 13
-        arr[0] = (arr[0] | 1) & ~0x6E;
+        // Restore 3, 5, 7, 11, 13, 17
+        arr[0] = (arr[0] | 1) & ~0x16E;
 
         // 2. CORE SIEVE
-        for (let factor = 8; factor <= q; factor++) {
+        for (let factor = 9; factor <= q; factor++) {
             if ((arr[factor >>> 5 | 0] & (1 << (factor & 31))) === 0) {
                 const step = (factor << 1) + 1;
                 let s = (factor * step) + factor;
