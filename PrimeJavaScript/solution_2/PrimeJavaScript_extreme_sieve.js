@@ -5,10 +5,8 @@ const { performance } = require('perf_hooks');
 const SIEVE_SIZE = 1000000;
 const LIMIT_BITS = SIEVE_SIZE >>> 1;
 
-// --- SUPER-WHEEL (3, 5, 7, 11, 13) --- 
-// Period (3,5,7,11,13) = 15,015. 
-// 15,015 words (15,015 * 32 bits) is a perfect word-aligned wheel.
-// 15,015 * 32 = 480,480 bits.
+// Optimization: Wheel factorization for primes 3, 5, 7, 11, 13, 17.
+// Wheel period: 15,015 words (480,480 bits).
 const SW_WORDS = 15015;
 const SW_13 = new Int32Array(SW_WORDS);
 const SW_17 = new Int32Array(SW_WORDS);
@@ -55,12 +53,12 @@ class PrimeSieve {
         const limit = this.limitBits;
         const q = this.q;
 
-        // 1. FAST INIT (Wheel 3-17)
+        // Initial state from wheel (3-17)
         arr.set(SW_17.subarray(0, Math.min(SW_WORDS, len)));
         if (len > SW_WORDS) {
             arr.set(SW_13.subarray(0, len - SW_WORDS), SW_WORDS);
             
-            // Fix prime 17 for the tail (starting index 480480)
+            // Correction for 17 in unaligned tail
             let fixS = 480496;
             while (fixS < limit) {
                 arr[fixS >>> 5 | 0] |= (1 << (fixS & 31));
@@ -68,10 +66,10 @@ class PrimeSieve {
             }
         }
 
-        // Restore 3, 5, 7, 11, 13, 17
+        // Reset bits for small primes (3-17)
         arr[0] = (arr[0] | 1) & ~0x16E;
 
-        // 2. CORE SIEVE
+        // Sieving loop
         for (let factor = 9; factor <= q; factor++) {
             if ((arr[factor >>> 5 | 0] & (1 << (factor & 31))) === 0) {
                 const step = (factor << 1) + 1;

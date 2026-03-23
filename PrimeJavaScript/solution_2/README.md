@@ -4,20 +4,18 @@ This solution contains two different implementations of the Prime Sieve.
 
 ## Implementations
 
-### 1. Sniper (God Mode)
-- **Algorithm**: `other` (Static Mask for first 11 primes)
-- **Faithfulness**: `no` (Uses a global buffer and pre-calculated mask)
-- **Performance**: ~23,000 passes
+### 1. static_mask
+- **Algorithm**: `other` (Static Mask up to 37)
+- **Faithfulness**: `no` (Global buffer and pre-calculated mask)
 - **Badges**:
   ![Algorithm](https://img.shields.io/badge/Algorithm-other-yellow)
   ![Faithfulness](https://img.shields.io/badge/Faithful-no-yellowgreen)
   ![Parallelism](https://img.shields.io/badge/Parallel-no-green)
   ![Bit count](https://img.shields.io/badge/Bits-1-green)
 
-### 2. Extreme (Super-Wheel)
-- **Algorithm**: `other` (Wheel Factorization 3-13)
-- **Faithfulness**: `yes` (Meets all faithful benchmark requirements)
-- **Performance**: ~13,600 passes
+### 2. wheel
+- **Algorithm**: `other` (Wheel Factorization 3-17)
+- **Faithfulness**: `yes`
 - **Badges**:
   ![Algorithm](https://img.shields.io/badge/Algorithm-other-yellowgreen)
   ![Faithfulness](https://img.shields.io/badge/Faithful-yes-green)
